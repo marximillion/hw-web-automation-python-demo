@@ -10,6 +10,7 @@ MDG 2026
 - Yarn 1.22.22
 - Google Chrome Version 144.0.7559.110
 - ChromeDriver 144.0.7559.96
+- Python 3.14.2
 ---
 
 # Set up
