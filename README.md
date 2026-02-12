@@ -28,4 +28,25 @@ MDG 2026
 
 ---
 # Tests
-TBD
+### Run all tests:
+- pytest
+
+### Run all tests with verbose output
+- pytest -v
+
+### Run with print statements visible
+- pytest -v -s
+
+### Run specific test
+- pytest tests/test_bat_suite.py::TestBuildAcceptance::test_homepage_loads -v
+
+### Run tests matching a keyword
+- pytest -k "homepage" -v
+
+### Run tests in parallel (requires pytest-xdist)
+- pip install pytest-xdist
+- pytest -n 4  # Run with 4 workers
+
+### Generate HTML report (requires pytest-html)
+pip install pytest-html
+pytest --html=report.html --self-contained-html
