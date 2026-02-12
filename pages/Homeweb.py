@@ -23,10 +23,15 @@ class Homeweb:
         self._is_authenticated = False
         self._is_landing = False
         self.authenticated = Authenticated.EN if lang == "EN" else Authenticated.FR
-        self.header_type = "ANON"
-        self.header = Header(self.driver, self.lang, self.header_type)
+        self.header = None
+        self.update_header()
 
     # Methods
+    def update_header(self):
+        user_type = "AUTH" if self._is_authenticated else "ANON"
+        self.header = Header(self.driver, self.lang, user_type)
+
+    
     def navigate_landing(self):
         url = self.landing["base_url"]
         self.driver.get(url)
@@ -52,8 +57,7 @@ class Homeweb:
 
     def set_authenticated(self, value):
         self._is_authenticated = value
-        self.header_type = "AUTH"
-        self.header = Header(self.driver, self.lang, self.header_type)
+        self.update_header()
 
     def is_authenticated(self):
         return self._is_authenticated
