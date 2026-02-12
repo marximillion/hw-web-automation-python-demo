@@ -2,8 +2,10 @@
 from dotenv import load_dotenv
 import os
 
-# Set up Credentials
-load_dotenv()  # loads variables from .env
+
+# 1: Set up Credentials
+# 1.1: Loads variables from .env
+load_dotenv()
 CREDENTIALS = {
     "personal": {
         "email": os.getenv("PERSONAL_EMAIL"),
@@ -76,10 +78,7 @@ def test_bat_web_003(homeweb, quantum):
     quantum.submit()
 
     # 5: Test - Login
-    homeweb.wait_for_dashboard()
-    assert "homeweb" in homeweb.current_url.lower()
-    assert "/app/en/homeweb/dashboard" in homeweb.current_url.lower()
-
+    assert homeweb.wait_for_dashboard()
     homeweb.set_authenticated(True)
 
 def test_bat_web_004(homeweb):
@@ -89,11 +88,35 @@ def test_bat_web_004(homeweb):
     homeweb.driver.get(resource_target)
     assert homeweb.wait_for_resource_content()
 
-# TODO: BAT-WEB-005
 def test_bat_web_005(homeweb):
     assert homeweb.is_authenticated
 
-# TODO: BAT-WEB-006
+    sentio_resource_target = "https://homeweb.ca/app/en/resources/62c5a1e929ed9c1608d0434b"
+    sentio_access_button = {
+        "identifier": homeweb.authenticated["elements"]["buttons"]["access_sentio"],
+        "path": homeweb.authenticated["paths"]["buttons"]["access_sentio"]
+    }
+    homeweb.driver.get(sentio_resource_target)
+    assert homeweb.wait_for_resource_content()
+
+    homeweb.click_element("xpath",sentio_access_button["identifier"])
+    assert homeweb.wait_for_sentio_transfer()
+    homeweb.go_back()
+
+def test_bat_web_006(homeweb):
+    assert homeweb.is_authenticated
+
+    # header = Header(homeweb.driver, homeweb.lang, "AUTH")
+    header = homeweb.header
+    header_buttons = header.elements["buttons"]
+    header.click_element("class name", header_buttons["menu"])
+    assert header.wait_for_dropdown()
+
+    header.click_element("css selector", header_buttons["sign_out"])
+    assert "https://homeweb.ca/" in homeweb.current_url.lower()
+    assert homeweb.is_landing()
+
+
 # TODO: BAT-WEB-007
 # TODO: BAT-WEB-008
 # TODO: BAT-WEB-009
