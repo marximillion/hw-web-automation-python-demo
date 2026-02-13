@@ -4,6 +4,8 @@ Pytest configuration and shared fixtures
 import pytest
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
+
+from pages.CustomerPortal import CustomerPortal
 from pages.Homeweb import Homeweb
 from pages.QuantumAPI import QuantumAPI
 
@@ -34,4 +36,9 @@ def homeweb(driver):
 def quantum(driver):
     quantum = QuantumAPI(driver)
     return quantum
+
+@pytest.fixture(scope="session")
+def customer_portal(driver):
+    portal = CustomerPortal(driver)
+    return portal
 
