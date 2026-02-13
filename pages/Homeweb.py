@@ -28,7 +28,7 @@ class Homeweb:
     # Methods
     def update_header(self):
         user_type = "AUTH" if self._is_authenticated else "ANON"
-        self.header = Header(self.driver, self.lang, user_type)
+        self.header = Header(self.driver, domain="homeweb", lang=self.lang, user=user_type)
 
     
     def navigate_landing(self):

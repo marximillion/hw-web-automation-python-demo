@@ -1,6 +1,8 @@
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions
+
+from pages.Header import Header
 from pages.Login import LoginPage
 
 
@@ -14,7 +16,23 @@ class QuantumAPI:
     def __init__(self, driver, lang="EN"):
         self.driver = driver
         self.wait = WebDriverWait(driver, 10)
+        self.lang = lang
         self.login = LoginPage.EN if lang == "EN" else LoginPage.FR
+        self._is_authenticated = False
+        self.header = None
+        self.update_header()
+
+
+    def update_header(self):
+        user_type = "AUTH" if self._is_authenticated else "ANON"
+        self.header = Header(self.driver, domain="quantum_api", lang=self.lang, user=user_type)
+
+    def set_authenticated(self, value):
+        self._is_authenticated = value
+        self.update_header()
+
+    def is_authenticated(self):
+        return self._is_authenticated
 
     def open(self):
         self.driver.get(self.URL)
