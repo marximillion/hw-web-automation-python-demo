@@ -1,5 +1,4 @@
 from pages.Header import Header
-from pages.Authenticated import Authenticated
 from pages.Landing import LandingPage
 from selenium.webdriver import ActionChains
 from selenium.webdriver.support.wait import WebDriverWait
@@ -22,7 +21,6 @@ class Homeweb:
         self.landing = LandingPage.EN if self.lang == "EN" else LandingPage.FR
         self._is_authenticated = False
         self._is_landing = False
-        self.authenticated = Authenticated.EN if lang == "EN" else Authenticated.FR
         self.header = None
         self.update_header()
 
@@ -79,5 +77,16 @@ class Homeweb:
         return self.wait.until(
             lambda d: "sentioapp" in d.current_url.lower() and "/sso/token" in d.current_url.lower()
         )
+
+    def wait_for_lifestage_transfer(self):
+        return self.wait.until(
+            lambda d: "lifestagecare" in d.current_url.lower()
+        )
+
+    def wait_for_lifestyle_transfer(self):
+        return self.wait.until(
+            lambda d: "healthycommunity" in d.current_url.lower()
+        )
+
 
 
