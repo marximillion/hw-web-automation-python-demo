@@ -119,11 +119,14 @@ class Header:
 
     def wait_for_account_menu(self):
         return self.wait.until(
-            lambda d: d.find_element("css selector", "div.dropdown-menu.dropdown-account.show")
+            expected_conditions.visibility_of_element_located(
+                ("css selector", "div.dropdown-menu.dropdown-account.show")
+            )
         )
 
     def wait_for_insights_dropdown(self):
         return self.wait.until(
-            lambda d: d.find_element("css selector", "ul.dropdown-menu.dropdown-insights.show")
+            expected_conditions.visibility_of_element_located(
+                ("css selector", "ul.dropdown-menu.dropdown-insights.show")
+            )
         )
-
