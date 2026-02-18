@@ -1,23 +1,18 @@
+from pages.BasePage import BasePage
+from pages.Constants import HOMEWEB_BASE_URL
 from pages.Header import Header
 from pages.Landing import LandingPage
-from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.support import expected_conditions
-import time
 
 
-class Homeweb:
+class Homeweb(BasePage):
     # Properties
-    @property
-    def title(self):
-        return self.driver.title
-
     @property
     def current_url(self):
         return self.driver.current_url
 
     def __init__(self, driver, lang="EN"):
-        self.driver = driver
-        self.wait = WebDriverWait(driver, 10)
+        super().__init__(driver)
         self.lang = lang
         self.landing = LandingPage.EN if self.lang == "EN" else LandingPage.FR
         self._is_authenticated = False
@@ -30,30 +25,8 @@ class Homeweb:
         user_type = "AUTH" if self._is_authenticated else "ANON"
         self.header = Header(self.driver, domain="homeweb", lang=self.lang, user=user_type)
 
-    
     def navigate_landing(self):
-        url = self.landing["base_url"]
-        self.driver.get(url)
-
-    def click_element(self, by, locator):
-        # 1: Find element
-        element = self.wait.until(
-            expected_conditions.element_to_be_clickable((by, locator))
-        )
-
-        # 2: Scroll element into view
-        self.driver.execute_script("arguments[0].scrollIntoView({block: 'center'});", element)
-
-        # 3: Wait for layout to stabilize
-        self.wait.until(
-            lambda d: element.is_displayed() and element.is_enabled()
-        )
-
-        # 4: Small pause to allow any final reflows
-        time.sleep(0.5)
-
-        # 5: Click
-        element.click()
+        self.driver.get(HOMEWEB_BASE_URL)
 
     def go_back(self):
         self.driver.back()

@@ -1,6 +1,5 @@
 class LandingPage:
     EN = {
-        "base_url": "https://www.homeweb.ca",
         "elements": {
             "resources": {
                 "emotional_intelligence": "//a[@title='Emotional Intelligence: Why it’s Important and How to Build it']",
@@ -26,7 +25,6 @@ class LandingPage:
     }
 
     FR = {
-        "base_url": "https://www.homeweb.ca/fr",
         "resources": {
             "emotional_intelligence": "//a[@title='Intelligence émotionnelle : pourquoi elle est importante et comment la développer']",
             "anxiety": "//a[@title='Anxiété : stratégies pour faire face au changement et à l’incertitude']",

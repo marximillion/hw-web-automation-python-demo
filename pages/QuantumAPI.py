@@ -2,11 +2,12 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions
 
+from pages.BasePage import BasePage
 from pages.Header import Header
 from pages.Login import LoginPage
 
 
-class QuantumAPI:
+class QuantumAPI(BasePage):
     URL = "https://api.homewoodhealth.io/en/login"
 
     @property
@@ -17,11 +18,24 @@ class QuantumAPI:
         self.driver = driver
         self.wait = WebDriverWait(driver, 10)
         self.lang = lang
-        self.login = LoginPage.EN if lang == "EN" else LoginPage.FR
+        self.elements = LoginPage.EN if lang == "EN" else LoginPage.FR
         self._is_authenticated = False
         self.header = None
         self.update_header()
 
+    def login(self, email, password):
+        inputs = self.elements["elements"]["inputs"]
+
+        # Email step
+        self.input(inputs["email_address"], email)
+        self.submit()
+
+        password_input = self.wait_for_password()
+        assert password_input.is_displayed()
+
+        # Password step
+        self.input(inputs["password"], password)
+        self.submit()
 
     def update_header(self):
         user_type = "AUTH" if self._is_authenticated else "ANON"
@@ -46,12 +60,12 @@ class QuantumAPI:
 
     def submit(self):
         next_button = self.wait.until(
-            expected_conditions.visibility_of_element_located((By.XPATH, self.login["elements"]["buttons"]["next"]))
+            expected_conditions.visibility_of_element_located((By.XPATH, self.elements["elements"]["buttons"]["next"]))
         )
         next_button.click()
 
     def wait_for_password(self):
-        xpath = self.login["elements"]["inputs"]["password"]
+        xpath = self.elements["elements"]["inputs"]["password"]
         return self.wait.until(expected_conditions.visibility_of_element_located((By.XPATH, xpath)))
 
 

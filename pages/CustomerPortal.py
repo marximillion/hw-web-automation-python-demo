@@ -1,24 +1,20 @@
+from pages.BasePage import BasePage
 from pages.Header import Header
 from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.support import expected_conditions
 
 
-class CustomerPortal:
+class CustomerPortal(BasePage):
     # Properties
-    @property
-    def title(self):
-        return self.driver.title
-
     @property
     def current_url(self):
         return self.driver.current_url
 
     def __init__(self, driver, lang="EN"):
+        super().__init__(driver)
         self.driver = driver
         self.wait = WebDriverWait(driver, 10)
         self.lang = lang
-        # self.header = Header()
-        # self.header = HeaderCustomerPortal.EN if lang == "EN" else HeaderCustomerPortal.FR
         self._is_authenticated = False
         self.header = None
         self.update_header()
