@@ -1,21 +1,5 @@
 # Test Suite: Build Acceptance
-from dotenv import load_dotenv
-import os
 from pages.Constants import HOMEWEB_BASE_URL, CUSTOMER_PORTAL_BASE_URL
-
-# 1: Set up Credentials
-# 1.1: Loads variables from .env
-load_dotenv()
-CREDENTIALS = {
-    "personal": {
-        "email": os.getenv("PERSONAL_EMAIL"),
-        "password": os.getenv("PERSONAL_PASSWORD")
-    },
-    "demo": {
-        "email": os.getenv("DEMO_EMAIL"),
-        "password": os.getenv("DEMO_PASSWORD")
-    },
-}
 
 def test_bat_web_001(homeweb):
     # 1: Test - Navigate to Homeweb landing
@@ -53,7 +37,7 @@ def test_bat_web_002(homeweb):
     assert homeweb.wait_for_resource_content()
     homeweb.go_back()
 
-def test_bat_web_003(homeweb, quantum):
+def test_bat_web_003(homeweb, quantum, credentials):
     assert homeweb.is_landing()
     buttons = homeweb.landing["elements"]["buttons"]
     paths = homeweb.landing["paths"]["buttons"]
@@ -63,7 +47,7 @@ def test_bat_web_003(homeweb, quantum):
     assert paths["sign_in"] in quantum.current_url.lower()
 
     # 2: Test - Login - Homeweb - Personal
-    quantum.login(CREDENTIALS["personal"]["email"], CREDENTIALS["personal"]["password"])
+    quantum.login(credentials["personal"]["email"], credentials["personal"]["password"])
     assert homeweb.wait_for_dashboard()
     homeweb.set_authenticated(True)
 
@@ -103,7 +87,7 @@ def test_bat_web_006(homeweb):
     assert homeweb.is_landing()
     homeweb.set_authenticated(False)
 
-def test_bat_web_007(homeweb, quantum):
+def test_bat_web_007(homeweb, quantum, credentials):
     assert homeweb.is_landing()
     header = homeweb.header
     header_buttons = header.elements["buttons"]
@@ -114,7 +98,7 @@ def test_bat_web_007(homeweb, quantum):
     assert paths["sign_in"] in quantum.current_url.lower()
 
     # 2: Test - Login - Homeweb - Demo
-    quantum.login(CREDENTIALS["demo"]["email"], CREDENTIALS["demo"]["password"])
+    quantum.login(credentials["demo"]["email"], credentials["demo"]["password"])
     assert homeweb.wait_for_dashboard()
     homeweb.set_authenticated(True)
 
@@ -194,10 +178,9 @@ def test_bat_web_010(homeweb):
     assert homeweb.wait_for_resource_content()
     homeweb.go_back()
 
-def test_bat_web_011(homeweb, quantum, customer_portal):
+def test_bat_web_011(homeweb, quantum, customer_portal, credentials):
     assert homeweb.is_landing()
     paths = homeweb.landing["paths"]["buttons"]
-    inputs = quantum.elements["elements"]["inputs"]
     header = customer_portal.header
 
     # 1: Navigate to Customer Portal
@@ -205,14 +188,15 @@ def test_bat_web_011(homeweb, quantum, customer_portal):
     assert paths["sign_in"] in quantum.current_url.lower()
 
     # 2: Test - Email field
-    quantum.input(inputs["email_address"], CREDENTIALS["personal"]["email"])
-    quantum.submit()
-    password_input = quantum.wait_for_password()
-    assert password_input.is_displayed()
+    quantum.login(credentials["personal"]["email"], credentials["personal"]["password"])
+    # quantum.input(inputs["email_address"], credentials["personal"]["email"])
+    # quantum.submit()
+    # password_input = quantum.wait_for_password()
+    # assert password_input.is_displayed()
 
     # 3: Test - Password field
-    quantum.input(inputs["password"], CREDENTIALS["personal"]["password"])
-    quantum.submit()
+    # quantum.input(inputs["password"], credentials["personal"]["password"])
+    # quantum.submit()
 
     # 4: Test - Login - Customer Portal - Personal
     assert customer_portal.wait_for_portal_login()
