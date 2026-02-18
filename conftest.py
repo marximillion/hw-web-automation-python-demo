@@ -1,14 +1,16 @@
 """
 Pytest configuration and shared fixtures
 """
+import os
+
 import pytest
+from dotenv import load_dotenv
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 
 from pages.CustomerPortal import CustomerPortal
 from pages.Homeweb import Homeweb
 from pages.QuantumAPI import QuantumAPI
-
 
 @pytest.fixture(scope="session")
 def driver():
@@ -26,6 +28,21 @@ def driver():
 
     # 4: Close Browser
     driver_instance.quit()
+
+
+load_dotenv()
+@pytest.fixture(scope="session")
+def credentials():
+    return {
+        "personal": {
+            "email": os.getenv("PERSONAL_EMAIL"),
+            "password": os.getenv("PERSONAL_PASSWORD")
+        },
+        "demo": {
+            "email": os.getenv("DEMO_EMAIL"),
+            "password": os.getenv("DEMO_PASSWORD")
+        },
+    }
 
 @pytest.fixture(scope="session")
 def homeweb(driver):
