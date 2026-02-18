@@ -1,4 +1,4 @@
-class LandingPage:
+class Public:
     EN = {
         "elements": {
             "resources": {
@@ -17,6 +17,9 @@ class LandingPage:
                 "anxiety": "/en/homewood/emotional-intelligence-why-its-important-how-build",
                 "letting_go": "/en/homewood/ai-anxiety-strategies-coping-with-change-uncertainty",
                 "toolkit": "/en/homewood/navigating-uncertainty-your-mental-health-toolkit",
+                "summertime": "/summertime-and-your-health?embedded",
+                "mental_health": "/mental-health-benefits-of-exercise?embedded",
+                "summer_beauty": "/summer-beauty-from-the-inside-out?embedded"
             },
             "buttons": {
                 "sign_in": "/en/login"
@@ -42,6 +45,9 @@ class LandingPage:
                 "anxiety": "/fr/homewood/lintelligence-emotionnelle-pourquoi-estelle-importante-et-comment-la-developper",
                 "letting_go": "/fr/homewood/lanxiete-liee-lia-strategies-pour-faire-face-au-changement-et-lincertitude",
                 "toolkit": "/fr/homewood/gerer-l-incertitude-votre-boite-a-outils-sur-la-sante-mentale",
+                "summertime": "/summertime-and-your-health?embedded",
+                "mental_health": "/mental-health-benefits-of-exercise?embedded",
+                "summer_beauty": "/summer-beauty-from-the-inside-out?embedded"
             },
             "buttons": {
                 "sign_in": "/fr/login"
