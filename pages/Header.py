@@ -59,7 +59,15 @@ class HeaderCustomerPortal:
         "elements": {
             "buttons": {
                 "menu": "nav-account-toggle",
-                "sign_out": "[aria-label=\"Sign out\"]"
+                "menu_sign_out": "[aria-label=\"Sign out\"]",
+                "menu_language": "[aria-label=\"Change language to  FR\"]",
+                "toggle_language": "[aria-label=\"Toggle language to  FR\"]",
+            },
+            "dropdown": {
+                "dropdown_insights": "ul.dropdown-menu.dropdown-insights.show",
+                "dropdown_monthly": "Monthly Registrations Year-over-Year",
+                "dropdown_eq": "Equitable Dashboard",
+                "dropdown_ahs": "Insights: Alberta Health Services",
             }
         },
         "paths": {
@@ -70,7 +78,15 @@ class HeaderCustomerPortal:
         "elements": {
             "buttons": {
                 "menu": "nav-account-toggle",
-                "sign_out": ""
+                "menu_sign_out": "[aria-label=\"Se déconnecter\"]",
+                "menu_language": "[aria-label=\"Changer la langue en  EN\"]",
+                "toggle_language": "[aria-label=\"Basculer la langue en EN\"]",
+            },
+            "dropdown": {
+                "dropdown_insights": "ul.dropdown-menu.dropdown-perspectives.show",
+                "dropdown_monthly": "Monthly Registrations Year-over-Year",
+                "dropdown_eq": "Rapport d'utilisation",
+                "dropdown_ahs": "Perspectives: Alberta Health Services",
             }
         },
         "paths": {
@@ -106,6 +122,6 @@ class Header(BasePage):
     def wait_for_insights_dropdown(self):
         return self.wait.until(
             expected_conditions.visibility_of_element_located(
-                ("css selector", "ul.dropdown-menu.dropdown-insights.show")
+                ("css selector", self.elements["dropdown"]["dropdown_insights"])
             )
         )

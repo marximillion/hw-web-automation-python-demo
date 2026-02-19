@@ -1,4 +1,5 @@
 from pages.BasePage import BasePage
+from pages.Constants import CUSTOMER_PORTAL_BASE_URL
 from pages.Header import Header
 from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.support import expected_conditions
@@ -12,13 +13,17 @@ class CustomerPortal(BasePage):
 
     def __init__(self, driver, language):
         super().__init__(driver, language)
+        self.base_url = CUSTOMER_PORTAL_BASE_URL
         self._is_authenticated = False
         self.header = None
         self.update_header()
+        self.user_type = ""
 
     def update_header(self):
         user_type = "AUTH" if self._is_authenticated else "ANON"
+        # print(user_type)
         self.header = Header(self.driver, domain="customer_portal", language=self.language, user=user_type)
+        # print(self.header.elements)
 
     def set_authenticated(self, value):
         self._is_authenticated = value
@@ -50,12 +55,16 @@ class CustomerPortal(BasePage):
         )
 
         # 4: Ensure the visual actually rendered content (svg or visual-content-desc)
-        return self.wait.until(
+        self.wait.until(
             expected_conditions.presence_of_element_located((
                 "css selector",
                 "[data-testid=\"visual-style\"] svg, [data-testid=\"visual-style\"] [data-testid=\"visual-content-desc\"]",
             ))
         )
+
+        # 6: Switch back to main content
+        self.driver.switch_to.default_content()
+        return True
 
     def wait_for_tableau_report(self):
         # 1: Locate embed container
@@ -75,6 +84,10 @@ class CustomerPortal(BasePage):
         )
 
         # 4: Wait for tab loaders to complete
-        return self.wait.until(
+        self.wait.until(
             expected_conditions.invisibility_of_element_located(("css selector", ".tab-loader"))
         )
+
+        # 6: Switch back to main content
+        self.driver.switch_to.default_content()
+        return True

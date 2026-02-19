@@ -1,4 +1,6 @@
 # Test Suite: Build Acceptance
+import time
+
 from pages.Constants import HOMEWEB_DOMAIN, QUANTUM_API_DOMAIN
 
 
@@ -185,32 +187,38 @@ def test_bat_web_010(homeweb):
     assert homeweb.wait_for_resource_content()
     homeweb.go_back()
 
-# def test_bat_web_011(homeweb, quantum, customer_portal, credentials):
-#     assert homeweb.is_landing()
-#     paths = homeweb.landing["paths"]["buttons"]
-#     header = customer_portal.header
-#
-#     # 1: Navigate to Customer Portal
-#     homeweb.driver.get(CUSTOMER_PORTAL_BASE_URL)
-#     assert paths["sign_in"] in quantum.current_url.lower()
-#
-#     # 2: Test - Login - Customer Portal - Personal
-#     quantum.login(credentials["personal"]["email"], credentials["personal"]["password"])
-#     assert customer_portal.wait_for_portal_login()
-#     customer_portal.set_authenticated(True)
-#
-#     # 3: Test - Insights
-#     assert customer_portal.wait_for_tableau_report()
-#     customer_portal.driver.switch_to.default_content()
-#
-#     header.click_element("css selector", "[data-bs-toggle=\"dropdown\"]")
-#     assert header.wait_for_insights_dropdown()
-#     header.click_element("link text", "Equitable Dashboard")
-#     assert customer_portal.wait_for_power_bi_report()
-#     customer_portal.driver.switch_to.default_content()
-#
-#     header.click_element("css selector", "[data-bs-toggle=\"dropdown\"]")
-#     assert header.wait_for_insights_dropdown()
-#     header.click_element("link text", "Insights: Alberta Health Services")
-#     assert customer_portal.wait_for_power_bi_report()
-#     customer_portal.driver.switch_to.default_content()
+
+def test_bat_web_011(homeweb, quantum, customer_portal, credentials, language):
+    assert homeweb.is_landing()
+
+    # 1: Navigate to Customer Portal - Always EN
+    homeweb.driver.get(customer_portal.base_url)
+    assert quantum.base_url in quantum.current_url.lower()
+
+    # 2: Test - Login - Customer Portal - Personal
+    quantum.login(credentials["personal"]["email"], credentials["personal"]["password"])
+    assert customer_portal.wait_for_portal_login()
+    customer_portal.set_authenticated(True)
+
+    # 2.1: Login always navigates to EN, need to toggle to french manually after login
+    header = customer_portal.header
+    header_buttons = header.elements["buttons"]
+    header_dropdown = header.elements["dropdown"]
+    if language == "fr":
+        header.click_element("css selector", ".btn.btn-nav-item.btn-language.btn-icon-spaced")
+        assert "fr" in customer_portal.current_url.lower()
+
+    # 3: Test - Insights
+    assert customer_portal.wait_for_tableau_report()
+
+    header.click_element("css selector", "[data-bs-toggle=\"dropdown\"]")
+    assert header.wait_for_insights_dropdown()
+    header.click_element("link text", header_dropdown["dropdown_eq"])
+    assert customer_portal.wait_for_power_bi_report()
+
+    header.click_element("css selector", "[data-bs-toggle=\"dropdown\"]")
+    assert header.wait_for_insights_dropdown()
+    header.click_element("link text", header_dropdown["dropdown_ahs"])
+    assert customer_portal.wait_for_power_bi_report()
+
+    time.sleep(1)
