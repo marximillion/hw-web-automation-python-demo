@@ -8,6 +8,7 @@ class BasePage:
         self.driver = driver
         self.wait = WebDriverWait(driver, 20)
         self.language = language
+        self.base_url = None
 
     def click_element(self, by, locator):
         # 1: Find element

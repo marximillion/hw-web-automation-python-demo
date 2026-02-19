@@ -3,6 +3,7 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions
 
 from pages.BasePage import BasePage
+from pages.Constants import QUANTUM_API_BASE_URL
 from pages.Header import Header
 from pages.Login import LoginPage
 
@@ -14,6 +15,7 @@ class QuantumAPI(BasePage):
 
     def __init__(self, driver, language):
         super().__init__(driver, language)
+        self.base_url = QUANTUM_API_BASE_URL
         self.driver = driver
         self.elements = LoginPage.EN if language == "en" else LoginPage.FR
         self._is_authenticated = False
