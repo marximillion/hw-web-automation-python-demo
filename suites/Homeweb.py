@@ -89,8 +89,9 @@ class Homeweb(BasePage):
 
     def wait_for_lifestyle_transfer(self):
         return self.wait.until(
-            lambda d: LIFESTYLE_DOMAIN in d.current_url.lower()
+            lambda d: LIFESTYLE_DOMAIN in d.current_url.lower() and "default" in d.current_url.lower()
         )
+    
 
     def wait_for_modal(self):
         return self.wait.until(
