@@ -1,11 +1,15 @@
+# Copyright © 2026 - Homewood Health Inc.
+
 import random
 import time
+from datetime import datetime
 
 from selenium.webdriver.common.by import By
+from selenium.webdriver.support.select import Select
 from selenium.webdriver.support.wait import WebDriverWait
 
 from core.BasePage import BasePage
-from core.Constants import HOMEWEB_BASE_URL, HOMEWEB_DOMAIN, SENTIO_DOMAIN, LIFESTAGE_DOMAIN, LIFESTYLE_DOMAIN
+from core.Constants import HOMEWEB_BASE_URL, HOMEWEB_DOMAIN, SENTIO_DOMAIN, LIFESTAGE_DOMAIN, LIFESTYLE_DOMAIN, HOMEWEB_BETA_BASE_URL, HOMEWEB_BETA_DOMAIN
 from core.Header import Header
 from selenium.webdriver.support import expected_conditions
 
@@ -13,19 +17,22 @@ from core.Public import Public
 
 
 class Homeweb(BasePage):
-    # Properties
     @property
     def current_url(self):
         return self.driver.current_url
 
-    @property
-    def domain(self):
-        return HOMEWEB_DOMAIN
-
-    def __init__(self, driver, language):
+    def __init__(self, driver, language, env, quantum):
         super().__init__(driver, language)
-        self.base_url = HOMEWEB_BASE_URL
-        self.landing_url = HOMEWEB_BASE_URL + "/" + language
+
+        if env == "prod":
+            self.base_url = HOMEWEB_BASE_URL
+            self.domain = HOMEWEB_DOMAIN
+        else:
+            self.base_url = HOMEWEB_BETA_BASE_URL
+            self.domain = HOMEWEB_BETA_DOMAIN
+
+        self.quantum = quantum
+        self.landing_url = self.base_url + "/" + language
         self.public = Public.EN if language == "en" else Public.FR
         self._is_authenticated = False
         self._is_landing = False
@@ -40,6 +47,18 @@ class Homeweb(BasePage):
     def navigate_landing(self):
         self.driver.get(f"{self.base_url}/{self.language}")
         self.set_landing(True)
+
+    def navigate_dashboard(self):
+        self.click_element(By.CSS_SELECTOR, self.header.elements["buttons"]["dashboard"])
+
+    def navigate_recommendations(self):
+        self.wait.until(expected_conditions.visibility_of_element_located((By.CLASS_NAME, "item-pathfinder-recommends-v2")))
+        self.click_element(By.CSS_SELECTOR, "div.item-pathfinder-recommends-v2 a")
+
+    def navigate_rating(self):
+        self.wait.until(expected_conditions.visibility_of_element_located((By.CLASS_NAME, "section-recommendations")))
+        link_text = "Commencer Maintenant" if self.language == "fr" else "Get started"
+        self.click_element(By.LINK_TEXT, link_text)
 
     def go_back(self):
         self.driver.back()
@@ -78,20 +97,13 @@ class Homeweb(BasePage):
         )
 
     def wait_for_sentio_transfer(self):
-        return self.wait.until(
-            lambda d: SENTIO_DOMAIN in d.current_url.lower() and "/sso/token" in d.current_url.lower()
-        )
+        return self.wait.until(lambda d: SENTIO_DOMAIN in d.current_url.lower() and "/sso/token" in d.current_url.lower())
 
     def wait_for_lifestage_transfer(self):
-        return self.wait.until(
-            lambda d: LIFESTAGE_DOMAIN in d.current_url.lower()
-        )
+        return self.wait.until(lambda d: LIFESTAGE_DOMAIN in d.current_url.lower())
 
     def wait_for_lifestyle_transfer(self):
-        return self.wait.until(
-            lambda d: LIFESTYLE_DOMAIN in d.current_url.lower() and "default" in d.current_url.lower()
-        )
-    
+        return self.wait.until(lambda d: LIFESTYLE_DOMAIN in d.current_url.lower())
 
     def wait_for_modal(self):
         return self.wait.until(
@@ -148,6 +160,123 @@ class Homeweb(BasePage):
             lambda d: self.base_url + "/en" in d.current_url.lower()
         )
 
+    def wait_for_assessment(self):
+        assessment_endpoint = "pathfinder/assessment"
+        self.wait.until(lambda d: assessment_endpoint in d.current_url.lower())
+
+        self.wait.until(
+            expected_conditions.visibility_of_element_located((By.CLASS_NAME, "section-assessment"))
+        )
+
+        return True
+
+    def wait_for_recommendation(self):
+        recommendation_endpoint = "pathfinder/assessment/recommendation"
+        self.wait.until(lambda d: recommendation_endpoint in d.current_url.lower())
+
+        self.wait.until(
+            expected_conditions.visibility_of_element_located((By.CLASS_NAME, "section-recommendations"))
+        )
+
+        return True
+
+    def wait_for_rating(self):
+        recommendation_endpoint = "pathfinder/assessment/rating"
+        self.wait.until(lambda d: recommendation_endpoint in d.current_url.lower())
+
+        self.wait.until(
+            expected_conditions.visibility_of_element_located((By.CLASS_NAME, "section-five-star-rating"))
+        )
+
+        return True
+
+    def wait_for_booking_create(self):
+        booking_create_endpoint = "homeweb/booking/create"
+        self.wait.until(lambda d: booking_create_endpoint in d.current_url.lower())
+
+        self.wait.until(
+            expected_conditions.visibility_of_element_located((By.CLASS_NAME, "container-case-creation"))
+        )
+
+        return True
+
+    def wait_for_service_confirm(self):
+        service_confirm_endpoint = "homeweb/services/confirm"
+        self.wait.until(lambda d: service_confirm_endpoint in d.current_url.lower())
+
+        self.wait.until(
+            expected_conditions.visibility_of_element_located((By.CLASS_NAME, "container-confirm"))
+        )
+
+        return True
+
+    def wait_for_booking_digest(self):
+        booking_digest_endpoint = "homeweb/booking"
+        self.wait.until(lambda d: booking_digest_endpoint in d.current_url.lower())
+
+        self.wait.until(expected_conditions.invisibility_of_element_located((By.CLASS_NAME, "loadingPage")))
+
+        self.wait.until(
+            expected_conditions.visibility_of_element_located((By.CLASS_NAME, "controller-content"))
+        )
+
+        return True
+
+    def wait_for_booking_details(self):
+        booking_digest_endpoint = "homeweb/booking/detail"
+        self.wait.until(lambda d: booking_digest_endpoint in d.current_url.lower())
+
+        self.wait.until(expected_conditions.invisibility_of_element_located((By.CLASS_NAME, "loadingPage")))
+
+        self.wait.until(
+            expected_conditions.visibility_of_element_located((By.CLASS_NAME, "section-booking"))
+        )
+
+        return True
+
+        # TODO TEST: Resource Libraru
+        # def wait_for_resources(self):
+        #     resources_endpoint = "/resources"
+        #     self.wait.until(lambda d: resources_endpoint in d.current_url.lower())
+        #
+        #     self.wait.until(expected_conditions.invisibility_of_element_located((By.CLASS_NAME, "loadingPage")))
+        #
+        #     self.wait.until(
+        #         expected_conditions.visibility_of_element_located((By.CLASS_NAME, "controller-content"))
+        #     )
+        #
+        #     expected_active = "Santé mentale" if self.language == "fr" else "Mental Health"
+        #     active_item = self.driver.find_element(By.CSS_SELECTOR, "#categoryNav li.active > a").text.strip()
+        #     print (active_item)
+        #     assert expected_active in active_item
+
+        return True
+
+    def wait_for_booking_confirm(self):
+        booking_confirm_endpoint = "/homeweb/booking/confirm"
+        self.wait.until(lambda d: booking_confirm_endpoint in d.current_url.lower())
+
+        self.wait.until(expected_conditions.invisibility_of_element_located((By.CLASS_NAME, "loadingPage")))
+
+        self.wait.until(
+            expected_conditions.visibility_of_element_located((By.CLASS_NAME, "dsg-inner"))
+        )
+
+        return True
+
+    # def wait_for_booking_confirmation(self):
+    #     booking_confirmation_endpoint = "/homeweb/booking/confirm"
+    #     self.wait.until(lambda d: booking_confirm_endpoint in d.current_url.lower())
+    #
+    #     self.wait.until(expected_conditions.invisibility_of_element_located((By.CLASS_NAME, "loadingPage")))
+    #
+    #     self.wait.until(
+    #         expected_conditions.visibility_of_element_located((By.CLASS_NAME, "dsg-inner"))
+    #     )
+    #
+    #     return True
+
+
     def get_articles(self):
         # 1: Find articles container
         self.wait.until(
@@ -175,18 +304,50 @@ class Homeweb(BasePage):
         # 4: Return array of articles
         return articles
 
-    def get_active_appointments(self):
+    def get_active_services(self):
         # 1: Find Active appointments container
         appointments_zone = self.driver.find_elements(By.CSS_SELECTOR, ".zone-appointments")
 
         # 1.1: No active appointments
         if not appointments_zone:
-            print("No active appointments")
+            print("No active services")
             return []
 
         # 1.2: Retrieve active appointments
         appointment_tiles = appointments_zone[0].find_elements(By.CSS_SELECTOR, ".item-booking-v2")
         return [AppointmentTile(tile) for tile in appointment_tiles]
+
+    def get_dashboard_tiles(self):
+        # TODO: Investigate if this is expected
+        zone_length = "6" if self.language == "fr" else "8"
+        selector = f"div.collection.collection-dashboard.zone-length-{zone_length} .item"
+        tile_elements = self.driver.find_elements(By.CSS_SELECTOR, selector)
+        tiles = []
+
+        for tile in tile_elements:
+            title = tile.find_element(By.CSS_SELECTOR, ".item-content h3.title").text.strip()
+            href = tile.find_element(By.CSS_SELECTOR, ".item-content a.item-link").get_attribute("href")
+            link_text = tile.find_element(By.CSS_SELECTOR, ".item-content a.item-link").text.strip()
+            tiles.append(DashboardTile(tile, title, href, link_text))
+        return tiles
+
+    def get_primary_categories(self):
+        category_elements = self.driver.find_elements(By.CSS_SELECTOR, "nav.category-nav > ul > li > a")
+        return category_elements
+        # category_element = self.wait.until(expected_conditions.presence_of_element_located((By.CSS_SELECTOR, "nav.category-nav li a")))
+
+        # categories = []
+        # primary_items = self.driver.find_elements(By.CSS_SELECTOR, "#categoryNav > ul > li")
+        #
+        # for item in primary_items:
+        #     title = item.find_element(By.CSS_SELECTOR, "a").text.strip()
+        #     subcategories = [
+        #         sub.text.strip()
+        #         for sub in item.find_elements(By.CSS_SELECTOR, ".child-nav li a")
+        #     ]
+        #     categories.append({"title": title, "subcategories": subcategories})
+        #
+        # return categories
 
     def end_services(self, topic):
         done_text = "Oui j'ai terminé" if self.language == "fr" else "Yes, I am done"
@@ -233,9 +394,7 @@ class Homeweb(BasePage):
         )
         random.choice(radios).click()
 
-    # TODO: Implement for Sentio Beta - Client Suite once test criterias have been finalized
     def test_live_chat(self, email):
-        # TODO: Find a stronger fail criteria. No avaialble agents message?
         chat_btn_locator = "svelte-mffmc3"
         email_input_locator = "inputLabel-courriel" if self.language == "fr" else "inputLabel-email"
         begin_chat_locator = "[data-selector='PRIMARY_BUTTON']"
@@ -295,8 +454,9 @@ class Homeweb(BasePage):
         )
         print("CHAT SCROLLBOX FOUND. Waiting for agent to join the chat")
 
-        # 7: Wait for agent join system message (EN)
-        long_wait = WebDriverWait(self.driver, 180)  # 180 seconds = 3 minutes
+        # 7: Wait for agent join system message
+        # 2 min max wait time -> Match ring central Available Agent Search Time
+        long_wait = WebDriverWait(self.driver, 120)
         agent_join_msg = long_wait.until(
             expected_conditions.visibility_of_element_located(
                 (By.CSS_SELECTOR, "span[data-selector='SYSTEM_MESSAGE_CONTENT']")
@@ -322,7 +482,7 @@ class Homeweb(BasePage):
         reply_box.send_keys("Automated Test Message. Please reply to confirm message has been received.\n")
 
         # 11: Wait for agent reply
-        medium_wait = WebDriverWait(self.driver, 60)  # 60 seconds = 1 minute
+        medium_wait = WebDriverWait(self.driver, 60)
         medium_wait.until(
             lambda driver: driver.find_elements(By.CSS_SELECTOR, "div[data-selector='AGENT_MESSAGE_BUBBLE']")[-1].text != first_agent_msg.text
         )
@@ -336,6 +496,245 @@ class Homeweb(BasePage):
         )
 
         input("LIVE CHAT TEST SESSION ENDED. Press enter to continue...")
+
+    def get_current_question(self):
+        self.wait.until(
+            expected_conditions.visibility_of_element_located(
+                (By.CSS_SELECTOR, ".assessment-question-text h3")
+            )
+        )
+
+        assessment_question = self.driver.find_element(
+            By.CSS_SELECTOR,
+            ".assessment-question-text h3"
+        ).text.strip()
+
+        self.wait.until(expected_conditions.visibility_of_element_located((By.CLASS_NAME, "option")))
+        options = self.driver.find_elements(By.CLASS_NAME, "option")
+        assessment_options = []
+
+        for option in options:
+            label = option.find_element(By.CSS_SELECTOR, "button.btn-answer")
+            assessment_options.append(label)
+
+        return assessment_question, assessment_options
+
+    def is_assessment_complete(self):
+        return "/assessment/recommendation" in self.driver.current_url
+
+    def wait_for_next_step(self, previous_question):
+        self.wait.until(expected_conditions.invisibility_of_element_located((By.CLASS_NAME, "loadingPage")))
+
+        def condition(driver):
+            # case 1: completed
+            if self.is_assessment_complete():
+                return True
+
+            # case 2: new question
+            elements = self.driver.find_elements(By.CSS_SELECTOR, ".assessment-question-text h3")
+            if elements:
+                return elements[0].text.strip() != previous_question
+            return False
+
+        self.wait.until(condition)
+
+    def complete_assessment(self):
+
+        while not self.is_assessment_complete():
+            # Can modify answer logic here (For specific flows)
+            question_text, answers = self.get_current_question()
+            print(answers[0].text.strip())
+            self.wait.until(
+                expected_conditions.element_to_be_clickable(answers[0])
+            ).click()
+            self.wait_for_next_step(question_text)
+
+    def complete_rating(self):
+        options = self.driver.find_elements(By.CSS_SELECTOR, "#rating-form label")
+        selected = random.choice(options)
+        # self.click_element(selected)
+        self.wait.until(expected_conditions.element_to_be_clickable(selected))
+        selected.click()
+
+    def complete_booking_create_form(self):
+        # 1: Wait for form to load
+        self.wait.until(
+            expected_conditions.visibility_of_element_located(
+                (By.CSS_SELECTOR, "div.controller-content form")
+            )
+        )
+
+        # 2: Street Address
+        address = self.wait.until(expected_conditions.element_to_be_clickable((By.ID, "streetAddress")))
+        address.clear()
+        address.send_keys("6767 Homewood Street")
+
+        # 3: Province
+        province_select = Select(self.wait.until(expected_conditions.element_to_be_clickable((By.ID, "provinceState"))))
+        province_options = [o.text for o in province_select.options if o.get_attribute("value")]
+        current_province = province_select.first_selected_option.text
+        current_cities = [o.text for o in self.driver.find_element(By.ID, "city").find_elements(By.TAG_NAME, "option")]
+        selected_province = random.choice(province_options)
+        province_select.select_by_visible_text(selected_province)
+        print(selected_province)
+
+        # 4: City (wait for reload only if province changed)
+        from selenium.common.exceptions import StaleElementReferenceException
+
+        if selected_province != current_province:
+            def city_reloaded(driver):
+                try:
+                    return [o.text for o in driver.find_element(By.ID, "city").find_elements(By.TAG_NAME, "option")] != current_cities
+                except StaleElementReferenceException:
+                    return False
+
+            self.wait.until(city_reloaded)
+
+        # if selected_province != current_province:
+        #     self.wait.until(lambda d: [o.text for o in d.find_element(By.ID, "city").find_elements(By.TAG_NAME, "option")] != current_cities)
+
+        city_select = Select(self.wait.until(expected_conditions.element_to_be_clickable((By.ID, "city"))))
+        city_options = [o.text for o in city_select.options if o.get_attribute("value")]
+        selected_city = random.choice(city_options)
+        city_select.select_by_visible_text(selected_city)
+        print(selected_city)
+
+        # 5: Postal Code
+        postal = self.wait.until(expected_conditions.element_to_be_clickable((By.ID, "postalZipCode")))
+        postal.clear()
+        postal.send_keys("T6V7X3")
+
+        # 6: Phone Number
+        phone = self.wait.until(expected_conditions.element_to_be_clickable((By.ID, "phoneNumber")))
+        phone.clear()
+        phone.send_keys("9876543210")
+
+        # 7: Message Permission
+        # messageOk
+        # discreetMessage
+        # noMessage
+        self.click_element(By.ID, "noMessage")
+
+        # 8: Comments
+        phone = self.wait.until(expected_conditions.element_to_be_clickable((By.ID, "comments")))
+        phone.clear()
+        timestamp = datetime.now().strftime("%m-%d-%Y-%H%M%S")
+        base_text = f"TEST COMMENT-{timestamp}"
+        phone.send_keys(base_text)
+
+        # 9: Submit
+        self.click_element(By.CSS_SELECTOR, "button.submit-inner")
+
+    def complete_service_confirm_form(self, email):
+        # 1: Wait for form to load
+        self.wait.until(
+            expected_conditions.visibility_of_element_located(
+                (By.CLASS_NAME, "container-confirm")
+            )
+        )
+
+        # 2: Email
+        email_field = self.wait.until(expected_conditions.element_to_be_clickable((By.ID, "email")))
+        email_field.clear()
+        email_field.send_keys(email)
+        print(email)
+
+        self.click_element(By.CSS_SELECTOR, "button[type='submit']")
+
+    def continue_booking(self, topic):
+        continue_text = "Reprendre la prise du rendez-vous" if self.language == "fr" else "Continue to Booking"
+
+        tile = self.driver.find_element(
+            By.XPATH,
+            f'//p[normalize-space()="{topic}"]/ancestor::div[contains(@class,"item-booking-v2")]'
+        )
+        continue_link = tile.find_element(By.LINK_TEXT, continue_text)
+        # print(f"CONTINUE FOUND -> {continue_link}")
+        self.click_element(By.LINK_TEXT, continue_text)
+        # self.wait.until(expected_conditions.element_to_be_clickable((By.LINK_TEXT, continue_text)))
+        # continue_link.click()
+
+    def get_booking_options(self):
+        self.wait.until(
+            expected_conditions.presence_of_element_located((By.CSS_SELECTOR, ".section-suggestions .item-booking-option"))
+        )
+
+        tiles = self.driver.find_elements(By.CSS_SELECTOR, ".section-suggestions .item-booking-option")
+        return [ProviderTile(tile) for tile in tiles]
+
+    # TODO: Select provider w/ time
+    def select_provider_time(self):
+        booking_options = self.get_booking_options()
+        # self.click_element()
+        # selected_option = random.choice(booking_options)
+        # print(f"Selected provider: {selected_option.provider_name}")
+        # selected_time = selected_option.select_random_time()
+        # print(f"Selected time: {selected_time}")
+
+    def select_provider(self):
+        booking_options = self.get_booking_options()
+        selected_option = random.choice(booking_options)
+        print(selected_option.provider_name)
+        link = selected_option.provider_details_link
+        self.driver.execute_script("arguments[0].scrollIntoView({block: 'center'});", link)
+        time.sleep(0.5)
+        self.wait.until(expected_conditions.element_to_be_clickable(link))
+        link.click()
+
+    def select_booking_options(self):
+        self.wait.until(expected_conditions.visibility_of_element_located((By.CLASS_NAME, "section-booking")))
+
+        # 2: Select a random available time
+        time_options = self.wait.until(
+            expected_conditions.presence_of_all_elements_located(
+                (By.CSS_SELECTOR, ".provider-times-container label.btn-time")
+            )
+        )
+        selected_time = random.choice(time_options)
+        print(selected_time.text.strip())
+        selected_time.click()
+
+        # 3: Wait for modality select to enable after time selection
+        self.wait.until(expected_conditions.element_to_be_clickable((By.ID, "appointmentModality")))
+        modality_select = Select(self.driver.find_element(By.ID, "appointmentModality"))
+        modality_options = [o.text for o in modality_select.options if o.get_attribute("value") != "0"]
+        selected_modality = random.choice(modality_options)
+        print(selected_modality)
+        modality_select.select_by_visible_text(selected_modality)
+
+        # 4: Click Review & confirm
+        self.click_element(By.CSS_SELECTOR, "button.btn-primary:not(.disabled)")
+
+    def confirm_booking(self):
+        self.driver.find_elements(By.CLASS_NAME, "btn-booking")
+
+        yes_button = self.wait.until(
+            expected_conditions.element_to_be_clickable((By.CSS_SELECTOR, "div.container-buttons button"))
+        )
+
+        yes_button.click()
+
+        self.wait.until(expected_conditions.invisibility_of_element_located((By.CLASS_NAME, "loadingPage")))
+        # print("PAGE LOADED")
+
+        # TODO: Assert Continue to Booking button is no longer visible on Dashboard
+        # NOTE: Booking Confirmed at this point - Sufficient for now. See Additional Tests Below
+        # Additional Tests
+        # TEST: Confirmation Method
+        # homeweb.choose_confirmation_method()
+
+    def choose_confirmation_method(self, method="text"):
+        self.wait.until(expected_conditions.visibility_of_element_located((By.CLASS_NAME, "container-buttons")))
+
+        buttons = self.driver.find_elements(By.CLASS_NAME, "btn-booking")
+        print(len(buttons))
+
+
+
+        # if method == "text":
+        #     buttons[0].click()
+        # else:
+        #     buttons[1].click()
 
 
 class AppointmentTile:
@@ -353,3 +752,44 @@ class AppointmentTile:
     @property
     def provider(self):
         return self._tile.find_element(By.CSS_SELECTOR, ".column-provider-details .name").text.strip()
+
+
+# Dashboard Tiles - EN
+# 0 - Pathfinder
+# 1 - Sentio by Homewood Health
+# 2 - Resource Library
+# 3 - How are you doing today?
+# 4 - Childcare Resource Locator by LifestageCare
+# 5 - Eldercare Resource Locator by LifestageCare
+# 6 - Health and Wellness Library
+# 7 - Health Risk Assessment
+class DashboardTile:
+    def __init__(self, tile, title, href, link_text):
+        self.tile = tile
+        self.title = title
+        self.href = href
+        self.link_text = link_text
+
+    def click(self):
+        self.tile.find_element(By.CSS_SELECTOR, ".item-content a.item-link").click()
+
+
+class ProviderTile:
+    def __init__(self, tile):
+        self._tile = tile
+
+    @property
+    def provider_name(self):
+        return self._tile.find_element(By.CSS_SELECTOR, "a.provider-name").text.strip()
+
+    @property
+    def provider_details_link(self):
+        return self._tile.find_element(By.CSS_SELECTOR, "a.link-provider-details")
+
+    @property
+    def available_times(self):
+        return self._tile.find_elements(By.CSS_SELECTOR, ".provider-times-container .btn-time")
+
+    def select_random_time(self):
+        times = self.available_times
+        random.choice(times).click()

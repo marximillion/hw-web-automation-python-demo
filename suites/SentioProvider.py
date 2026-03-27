@@ -1,3 +1,5 @@
+# Copyright © 2026 - Homewood Health Inc.
+
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions
 
@@ -6,19 +8,11 @@ from core.Constants import SENTIO_BETA_PROVIDER_BASE_URL, SENTIO_BETA_PROVIDER_D
 from core.Header import Header
 
 
-class SentioBetaProvider(BasePage):
+class SentioProvider(BasePage):
     # Properties
     @property
     def current_url(self):
         return self.driver.current_url
-
-    @property
-    def base_url(self):
-        return SENTIO_BETA_PROVIDER_BASE_URL
-
-    @property
-    def domain(self):
-        return SENTIO_BETA_PROVIDER_DOMAIN
 
     @property
     def classic_dashboard_endpoint(self):
@@ -28,8 +22,17 @@ class SentioBetaProvider(BasePage):
     def new_dashboard_endpoint(self):
         return "/app/" + self.language + "/sentio/v3/patients"
 
-    def __init__(self, driver, language):
+    def __init__(self, driver, language, env, quantum):
         super().__init__(driver, language)
+
+        if env == "prod":
+            self.base_url = SENTIO_BETA_PROVIDER_BASE_URL
+            self.domain = SENTIO_BETA_PROVIDER_DOMAIN
+        else:
+            self.base_url = SENTIO_BETA_PROVIDER_BASE_URL
+            self.domain = SENTIO_BETA_PROVIDER_DOMAIN
+
+        self.quantum = quantum
         self._is_authenticated = False
         self.header = None
         self.update_header()

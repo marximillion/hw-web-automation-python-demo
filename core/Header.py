@@ -1,3 +1,5 @@
+# Copyright © 2026 - Homewood Health Inc.
+
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions
 
@@ -46,7 +48,8 @@ class HeaderHomeweb:
         "elements": {
             "buttons": {
                 "menu": "nav-account-toggle",
-                "sign_out": "[aria-label=\"Sign out\"]"
+                "sign_out": "[aria-label=\"Sign out\"]",
+                "dashboard": "[aria-label=\"Dashboard\"]"
             }
         },
         "paths": {
@@ -57,7 +60,9 @@ class HeaderHomeweb:
         "elements": {
             "buttons": {
                 "menu": "nav-account-toggle",
-                "sign_out": "[aria-label=\"Se déconnecter\"]"
+                "sign_out": "[aria-label=\"Se déconnecter\"]",
+                "dashboard": "[aria-label=\"Tableau de bord\"]",
+
             }
         },
         "paths": {
@@ -121,7 +126,7 @@ class HeaderQuantumApi:
     }
 
 
-class HeaderSentioBetaClient:
+class HeaderSentioClient:
     EN = {
         "elements": {
             "buttons": {
@@ -144,7 +149,7 @@ class HeaderSentioBetaClient:
     }
 
 
-class HeaderSentioBetaProvider:
+class HeaderSentioProvider:
     EN = {
         "elements": {
             "classic": "[aria-label=\"Classic Dashboard\"]",
@@ -173,8 +178,8 @@ class Header(BasePage):
         "homeweb": {"AUTH": HeaderHomeweb, "ANON": HeaderAnon},
         "customer_portal": {"AUTH": HeaderCustomerPortal, "ANON": HeaderAnon},
         "quantum_api": {"AUTH": HeaderQuantumApi, "ANON": HeaderAnonApi},
-        "sentio_beta_client": {"AUTH": HeaderSentioBetaClient, "ANON": HeaderAnon},
-        "sentio_beta_provider": {"AUTH": HeaderSentioBetaProvider, "ANON": HeaderAnon},
+        "sentio_beta_client": {"AUTH": HeaderSentioClient, "ANON": HeaderAnon},
+        "sentio_beta_provider": {"AUTH": HeaderSentioProvider, "ANON": HeaderAnon},
     }
 
     def __init__(self, driver, language, domain="homeweb", user="ANON"):
