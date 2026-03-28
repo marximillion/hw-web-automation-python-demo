@@ -44,7 +44,10 @@ class Homeweb(BasePage):
         user_type = "AUTH" if self._is_authenticated else "ANON"
         self.header = Header(self.driver, domain="homeweb", language=self.language, user=user_type)
 
-    def navigate_landing(self):
+    def navigate_landing(self, custom=None):
+        if custom:
+            self.driver.get(f"{self.base_url}/{self.language}/{custom}")
+
         self.driver.get(f"{self.base_url}/{self.language}")
         self.set_landing(True)
 
@@ -80,12 +83,19 @@ class Homeweb(BasePage):
     def is_landing(self):
         return self._is_landing
 
+    def wait_for_landing(self):
+        return self.wait.until(
+            expected_conditions.visibility_of_element_located((By.CLASS_NAME, "container-page-dynamic"))
+        )
+
     def wait_for_dashboard(self):
         expected_path = f"/app/{self.language}/homeweb/dashboard"
 
         self.set_landing(False)
 
         self.set_authenticated(True)
+
+        # self.
 
         return self.wait.until(
             lambda d: HOMEWEB_DOMAIN in d.current_url.lower() and expected_path in d.current_url.lower()
@@ -217,7 +227,11 @@ class Homeweb(BasePage):
         self.wait.until(expected_conditions.invisibility_of_element_located((By.CLASS_NAME, "loadingPage")))
 
         self.wait.until(
-            expected_conditions.visibility_of_element_located((By.CLASS_NAME, "controller-content"))
+            expected_conditions.visibility_of_element_located((By.CLASS_NAME, "collection-provider-matches"))
+        )
+
+        self.wait.until(
+            expected_conditions.visibility_of_element_located((By.CLASS_NAME, "dp__instance_calendar"))
         )
 
         return True
@@ -264,6 +278,19 @@ class Homeweb(BasePage):
 
         return True
 
+    def wait_for_pulsecheck(self):
+        pulsecheck_endpoint = "wellness/pulsecheck"
+
+        self.wait.until(lambda d: pulsecheck_endpoint in d.current_url.lower())
+
+        self.wait.until(expected_conditions.invisibility_of_element_located((By.CLASS_NAME, "loadingPage")))
+
+        self.wait.until(
+            expected_conditions.visibility_of_element_located((By.CLASS_NAME, "pulsecheck-slide"))
+        )
+
+        return True
+
     # def wait_for_booking_confirmation(self):
     #     booking_confirmation_endpoint = "/homeweb/booking/confirm"
     #     self.wait.until(lambda d: booking_confirm_endpoint in d.current_url.lower())
@@ -275,7 +302,6 @@ class Homeweb(BasePage):
     #     )
     #
     #     return True
-
 
     def get_articles(self):
         # 1: Find articles container
@@ -328,7 +354,7 @@ class Homeweb(BasePage):
             title = tile.find_element(By.CSS_SELECTOR, ".item-content h3.title").text.strip()
             href = tile.find_element(By.CSS_SELECTOR, ".item-content a.item-link").get_attribute("href")
             link_text = tile.find_element(By.CSS_SELECTOR, ".item-content a.item-link").text.strip()
-            tiles.append(DashboardTile(tile, title, href, link_text))
+            tiles.append(DashboardTile(self.driver, self.wait, tile, title, href, link_text))
         return tiles
 
     def get_primary_categories(self):
@@ -549,10 +575,17 @@ class Homeweb(BasePage):
             ).click()
             self.wait_for_next_step(question_text)
 
-    def complete_rating(self):
-        options = self.driver.find_elements(By.CSS_SELECTOR, "#rating-form label")
-        selected = random.choice(options)
-        # self.click_element(selected)
+    def complete_rating(self, rating=None):
+        if rating is not None:
+            selected = self.wait.until(
+                expected_conditions.element_to_be_clickable(
+                    (By.CSS_SELECTOR, f'#rating-form label[for="{rating}"]')
+                )
+            )
+        else:
+            options = self.driver.find_elements(By.CSS_SELECTOR, f"#rating-form label")
+            selected = random.choice(options)
+
         self.wait.until(expected_conditions.element_to_be_clickable(selected))
         selected.click()
 
@@ -729,8 +762,6 @@ class Homeweb(BasePage):
         buttons = self.driver.find_elements(By.CLASS_NAME, "btn-booking")
         print(len(buttons))
 
-
-
         # if method == "text":
         #     buttons[0].click()
         # else:
@@ -764,14 +795,31 @@ class AppointmentTile:
 # 6 - Health and Wellness Library
 # 7 - Health Risk Assessment
 class DashboardTile:
-    def __init__(self, tile, title, href, link_text):
+    def __init__(self, driver, wait, tile, title, href, link_text):
+        self.driver = driver
+        self.wait = wait
         self.tile = tile
         self.title = title
         self.href = href
         self.link_text = link_text
 
-    def click(self):
-        self.tile.find_element(By.CSS_SELECTOR, ".item-content a.item-link").click()
+    def navigate(self):
+        link = self.tile.find_element(By.LINK_TEXT, self.link_text)
+
+        # scroll into view
+        self.driver.execute_script(
+            "arguments[0].scrollIntoView({block: 'center'});", link
+        )
+
+        # 3: Wait for layout to stabilize
+        self.wait.until(lambda d: link.is_displayed() and link.is_enabled())
+
+        # 4: Small pause to allow any final reflows
+        time.sleep(0.5)
+        # wait until clickable
+        clickable_element = self.wait.until(expected_conditions.element_to_be_clickable(link))
+
+        clickable_element.click()
 
 
 class ProviderTile:
